@@ -10,11 +10,11 @@ on:
         description: "The branch to update"
         required: true
         default: "main"
-      debug_enabled:
-        description: 'use tmage to debug'
-        type: boolean
-        required: false
-        default: false       
+#      debug_enabled:
+#       description: 'use tmage to debug'
+#        type: boolean
+#        required: false
+#        default: false       
   schedule:
     - cron: "0 18 * * 1-5"
 
@@ -108,10 +108,10 @@ jobs:
 #        run: |
 #          ./scripts/test-web-integration.sh --browser chromium
 
-      - name: Run smoke tests
-        id: runSmokeTests
-        run: |
-          yarn smoketest --web --headless --electronArgs="--disable-dev-shm-usage --use-gl=swiftshader"
+#      - name: Run smoke tests
+#        id: runSmokeTests
+#        run: |
+#          yarn smoketest --web --headless --electronArgs="--disable-dev-shm-usage --use-gl=swiftshader"
 
       - name: Push changes
         run: |
