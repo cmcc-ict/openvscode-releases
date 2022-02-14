@@ -28,6 +28,48 @@ env:
   RELEASE_COMMIT: ${{ github.event.inputs.commit || 'main' }}
 
 jobs:
+  build-dependencies:
+    runs-on: ubuntu-latest
+    container:
+      image: gitpod/openvscode-server-linux-build-agent:centos7-devtoolset8-x64
+    name: Build native dependencies linux-x64
+    if: github.event.inputs.commit || github.event.workflow_run.conclusion == 'success'
+    steps:
+      # Get the release commit from the Insiders workflow
+      - name: Download artifact
+        if: github.event.workflow_run.conclusion == 'success'
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: insiders.yml
+          name: release_commit
+      - name: Read release commit from file
+        if: github.event.workflow_run.conclusion == 'success'
+        run: |
+          echo "RELEASE_COMMIT=$(cat __release_commit.txt)" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v2
+        with:
+          repository: ${{ github.repository_owner }}/openvscode-server
+          ref: ${{ env.RELEASE_COMMIT }}
+          token: ${{ secrets.VSCODE_GITHUB_TOKEN }}
+      
+      - name: Execute yarn
+        run: |
+          set -e
+          export npm_config_arch=x64
+          yarn --cwd remote --frozen-lockfile --network-timeout 180000
+      
+      - name: Compress node_modules output
+        run: |
+          set -e
+          tar -cz --ignore-failed-read -f reh_node_modules-x64.tar.gz -C ./remote node_modules
+
+      - name: Updaload compiled dependencies
+        uses: actions/upload-artifact@v2
+        with:
+          name: reh_node_modules-x64
+          path: reh_node_modules-x64.tar.gz
+
   build:
     runs-on: ubuntu-latest
     container:
@@ -52,19 +94,12 @@ jobs:
           image: gitpod/openvscode-server-linux-build-agent:stretch-armhf
 
     name: Build linux-${{ matrix.vscode_arch }}
-    if: github.event.inputs.commit || github.event.workflow_run.conclusion == 'success'
-    steps:  
-        # Get the release commit from the Insiders workflow
-      - name: Download artifact
-        if: github.event.workflow_run.conclusion == 'success'
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          workflow: insiders.yml
-          name: release_commit
-      - name: Read release commit from file
-        if: github.event.workflow_run.conclusion == 'success'
-        run: |
-          echo "RELEASE_COMMIT=$(cat __release_commit.txt)" >> $GITHUB_ENV
+    needs: build-dependencies
+    outputs:
+      release_commit: ${{ steps.bundle_tar.outputs.release_commit }}
+      version: ${{ steps.bundle_tar.outputs.version }}
+      quality: ${{ steps.bundle_tar.outputs.quality }}
+    steps:   
       
       - uses: actions/checkout@v2
         with:
@@ -163,6 +198,7 @@ jobs:
           yarn smoketest-no-compile --web --headless --electronArgs="--disable-dev-shm-usage --use-gl=swiftshader"
           
       - name: Bundle tarfile
+        id: bundle_tar
         run: |
           set -e
           version=$(node -p -e "require('./openvscode-server/package.json').version")
@@ -170,7 +206,9 @@ jobs:
           name="openvscode-server${quality_name}-v${version}-linux-${{ matrix.vscode_arch }}"
           mv vscode-reh-web-linux-${{ matrix.vscode_arch }} ${name}
           tar -czf ${name}.tar.gz ${name}
-          echo "${version}" > __release_version.txt
+          echo "::set-output name=release_commit::${RELEASE_COMMIT}"
+          echo "::set-output name=version::${version}"
+          echo "::set-output name=quality::${QUALITY}"
       
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
