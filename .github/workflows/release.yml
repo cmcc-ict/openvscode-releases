@@ -38,18 +38,18 @@ jobs:
 
     # support only linux for now
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
         - vscode_arch: x64
           npm_arch: x64
-          image: vscodium/vscodium-linux-build-agent:bionic-x64
+          image: gitpod/openvscode-server-linux-build-agent:bionic-x64
         - vscode_arch: arm64
           npm_arch: arm64
-          image: vscodium/vscodium-linux-build-agent:stretch-arm64
+          image: gitpod/openvscode-server-linux-build-agent:stretch-arm64
         - vscode_arch: armhf
           npm_arch: armv7l
-          image: vscodium/vscodium-linux-build-agent:stretch-armhf
+          image: gitpod/openvscode-server-linux-build-agent:stretch-armhf
 
     name: Build linux-${{ matrix.vscode_arch }}
     if: github.event.inputs.commit || github.event.workflow_run.conclusion == 'success'
@@ -75,7 +75,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
       
       - name: Install Yarn
         run: npm install -g yarn
