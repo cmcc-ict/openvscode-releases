@@ -103,10 +103,10 @@ jobs:
           yarn --cwd test/smoke compile
           yarn --cwd test/integration/browser compile
 
-      - name: Run integration tests
-        id: runIntegrationTests
-        run: |
-          ./scripts/test-web-integration.sh --browser chromium
+#      - name: Run integration tests
+#        id: runIntegrationTests
+#        run: |
+#          ./scripts/test-web-integration.sh --browser chromium
 
       - name: Run smoke tests
         id: runSmokeTests
