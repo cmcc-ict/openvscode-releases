@@ -238,7 +238,6 @@ jobs:
       stable: ${{ needs.build.outputs.quality == 'stable' }}
     secrets:
       VSCODE_GITHUB_TOKEN: ${{ secrets.VSCODE_GITHUB_TOKEN }}
-      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   docker-release:
     needs: [github-release, build]
@@ -250,5 +249,4 @@ jobs:
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
