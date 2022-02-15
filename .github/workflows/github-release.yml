@@ -17,8 +17,6 @@ on:
     secrets:
       VSCODE_GITHUB_TOKEN:
         required: true
-      SLACK_WEBHOOK:
-        required: true
 
 jobs:
   github-release:
