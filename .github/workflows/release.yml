@@ -17,6 +17,7 @@ on:
         description: 'Create GitHub and DockerHub Release'
         type: boolean
         required: true
+        default: true
 
   workflow_run:
     workflows: ["Insiders"]
